@@ -2,35 +2,43 @@ from matrixCreator import create_matrix
 import sys
 import math
 import time
+import numpy as np
+
+def num_digits(number):
+    if number == 0:
+        return 0
+    else:
+        return int(math.log10(abs(number)))
 
 def print_matrix(edges, size):
-    matrix = [[0 for _ in range(size)] for _ in range(size)]
+    matrix = np.zeros((size, size))
     for edge in edges:
-        matrix[edge[0]][edge[1]] = edge[2]
-    
-    letters = "abcdefghijklmnopqrstuvwxyz"
-    printed = [letters[i] for i in range(size)]
-    for letter in printed:
-        print(letter + " "* (4), end="")
-    print("")
+        matrix[edge[0], edge[1]] = edge[2]
+
+    indices = [str(i) for i in range(size)]
+    for letter in indices:
+        print(" "* (4) + letter + " "* (1), end="")
+    print()
+    print("  " + "-"*(1 + (size*6)))
     for index, row in enumerate(matrix):
-        print(printed[index], end=" ")
+        print(indices[index] + "|", end="")
+        print(" ", end="")
         for cell in row:
-            print(str(cell) + " "* (5 - (1 if cell <= 0  else int(math.log10(cell)))), end="")
-        print("")
+            print(" " if cell >= 0 else "", end="")
+            print(str(int(cell)) + " "* (4 - num_digits(int(cell))), end="")
+        print()
 
 def relax(edge, D):
     if D[edge[0]] + edge[2] < D[edge[1]]:
         D[edge[1]] = D[edge[0]] + edge[2]
 
-def bellmanFord(distanceMatrix):
-    D = [1000] * 5
+def bellmanFord(distanceMatrix, size):
+    D = [1000] * size
     D[0] = 0
     negative_loop = False
     for i in range(0, len(D)+1):
         for j in distanceMatrix:
             if j[2] != 1000 and D[j[0]] + j[2] < D[j[1]]:
-                """relax(j, D)"""
                 if i == len(D):
                     negative_loop = True
                     break
@@ -55,7 +63,7 @@ if __name__ == '__main__':
     edges = create_matrix(size)
     print_matrix(edges, size)
     before = time.time()
-    bellmanFord(edges)
+    bellmanFord(edges, size)
     after = time.time()
 
     print(f"TIME TAKEN: {after-before}s")
