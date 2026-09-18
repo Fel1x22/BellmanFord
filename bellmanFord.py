@@ -16,7 +16,7 @@ def print_matrix(edges, size):
     for index, row in enumerate(matrix):
         print(printed[index], end=" ")
         for cell in row:
-            print(str(cell) + " "* (5 - (1 if cell == 0  else int(math.log10(cell)))), end="")
+            print(str(cell) + " "* (5 - (1 if cell <= 0  else int(math.log10(cell)))), end="")
         print("")
 
 def relax(edge, D):
@@ -26,16 +26,32 @@ def relax(edge, D):
 def bellmanFord(distanceMatrix):
     D = [1000] * 5
     D[0] = 0
-    for i in range(0, len(D)):
+    negative_loop = False
+    for i in range(0, len(D)+1):
         for j in distanceMatrix:
-            if j[2] != 1000:
-                relax(j, D)
-    print(distanceMatrix)
-    print(D)
+            if j[2] != 1000 and D[j[0]] + j[2] < D[j[1]]:
+                """relax(j, D)"""
+                if i == len(D):
+                    negative_loop = True
+                    break
+                D[j[1]] = D[j[0]] + j[2]
+    if negative_loop:
+        print("Negative loop found: no valid result returned.")
+    else:
+        print("Results:")
+        print(D)
 
 
 if __name__ == '__main__':
-    size = int(sys.argv[1])
+    if len(sys.argv) - 1 != 1:
+        print("Error: Incorrect number of arguements entered. Please enter a valid integer for the matrix axis size.")
+        exit()
+    try:
+        size = int(sys.argv[1])
+    except:
+        print("Error: Invalid axis size entered. Please enter a valid integer for the matrix axis size.")
+        exit()
+    
     edges = create_matrix(size)
     print_matrix(edges, size)
     before = time.time()
