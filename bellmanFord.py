@@ -7,9 +7,9 @@ import argparse
 
 def num_digits(number):
     if number == 0:
-        return 0
+        return 1
     else:
-        return int(math.log10(abs(number)))
+        return int(math.log10(abs(number))) + 1
 
 def print_matrix(edges, size):
     matrix = np.zeros((size, size))
@@ -17,16 +17,18 @@ def print_matrix(edges, size):
         matrix[edge[0], edge[1]] = edge[2]
 
     indices = [str(i) for i in range(size)]
-    for letter in indices:
-        print(" "* (4) + letter + " "* (1), end="")
+    print(" " * num_digits(size), end="")
+    for num in indices:
+        print(" "* (4) + num + " " *  (2-num_digits(int(num))), end="")
     print()
     print("  " + "-"*(1 + (size*6)))
     for index, row in enumerate(matrix):
-        print(indices[index] + "|", end="")
+        spaces = " " * (num_digits(size) - num_digits(index) + 1)
+        print(indices[index] + spaces + "|", end="")
         print(" ", end="")
         for cell in row:
             print(" " if cell >= 0 else "", end="")
-            print(str(int(cell)) + " "* (4 - num_digits(int(cell))), end="")
+            print(str(int(cell)) + " "* (5 - num_digits(int(cell))), end="")
         print()
 
 def relax(edge, D):
@@ -34,6 +36,7 @@ def relax(edge, D):
         D[edge[1]] = D[edge[0]] + edge[2]
 
 def bellmanFord(distanceMatrix, size):
+    before = time.time()
     D = [1000] * size
     D[0] = 0
     negative_loop = False
@@ -44,11 +47,11 @@ def bellmanFord(distanceMatrix, size):
                     negative_loop = True
                     break
                 D[edge[1]] = D[edge[0]] + edge[2]
+    after = time.time()
     if negative_loop:
-        print("Negative loop found: no valid result returned.")
+        return "Negative loop found: no valid result returned.", after-before
     else:
-        print("Results:")
-        print(D)
+        return D, after-before
 
 
 if __name__ == '__main__':
@@ -63,8 +66,14 @@ if __name__ == '__main__':
     
     edges = create_matrix(size)
     print_matrix(edges, size)
-    before = time.time()
-    bellmanFord(edges, size)
-    after = time.time()
+    result, time_taken = bellmanFord(edges, size)
+    print("Results:")
+    print(result)
     if verbose:
-        print(f"TIME TAKEN: {after-before}s")
+        units = ["s", "ms", "μs", "ns"]
+        unit_index = 0
+        while time_taken < 1:
+            time_taken *= 1000
+            unit_index += 1
+        
+        print(f"TIME TAKEN: {round(time_taken, 2)}{units[unit_index]}")
