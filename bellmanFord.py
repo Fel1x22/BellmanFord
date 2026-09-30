@@ -3,6 +3,7 @@ import sys
 import math
 import time
 import numpy as np
+import argparse
 
 def num_digits(number):
     if number == 0:
@@ -37,12 +38,12 @@ def bellmanFord(distanceMatrix, size):
     D[0] = 0
     negative_loop = False
     for i in range(0, len(D)+1):
-        for j in distanceMatrix:
-            if j[2] != 1000 and D[j[0]] + j[2] < D[j[1]]:
+        for edge in distanceMatrix:
+            if D[edge[0]] + edge[2] < D[edge[1]]:
                 if i == len(D):
                     negative_loop = True
                     break
-                D[j[1]] = D[j[0]] + j[2]
+                D[edge[1]] = D[edge[0]] + edge[2]
     if negative_loop:
         print("Negative loop found: no valid result returned.")
     else:
@@ -51,19 +52,19 @@ def bellmanFord(distanceMatrix, size):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) - 1 != 1:
-        print("Error: Incorrect number of arguements entered. Please enter a valid integer for the matrix axis size.")
-        exit()
-    try:
-        size = int(sys.argv[1])
-    except:
-        print("Error: Invalid axis size entered. Please enter a valid integer for the matrix axis size.")
-        exit()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("size", type=int, help="Size of matrix")
+    parser.add_argument("-v", "--verbose", help="Print time taken to compute distances", action="store_true")
+    args = parser.parse_args()
+
+    size = args.size
+    verbose = args.verbose
     
     edges = create_matrix(size)
     print_matrix(edges, size)
     before = time.time()
     bellmanFord(edges, size)
     after = time.time()
-
-    print(f"TIME TAKEN: {after-before}s")
+    if verbose:
+        print(f"TIME TAKEN: {after-before}s")
